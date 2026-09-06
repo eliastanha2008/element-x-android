@@ -32,6 +32,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -130,6 +131,23 @@ fun HomeView(
             onStartChatClick = { if (firstThrottler.canHandle()) onStartChatClick() },
             onCreateSpaceClick = { if (firstThrottler.canHandle()) onCreateSpaceClick() },
             onMenuActionClick = onMenuActionClick,
+        )
+
+        // Telegram-style floating action button, detached from the bottom navigation bar.
+        val fabOnClick = if (state.currentHomeNavigationBarItem == HomeNavigationBarItem.Chats) onStartChatClick else onCreateSpaceClick
+        val fabContentDescription = if (state.currentHomeNavigationBarItem == HomeNavigationBarItem.Chats) {
+            CommonStrings.action_create_room
+        } else {
+            CommonStrings.action_create_space
+        }
+        HomeFloatingActionButton(
+            onClick = { if (firstThrottler.canHandle()) fabOnClick() },
+            contentDescription = fabContentDescription,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(bottom = 80.dp, end = 16.dp)
+                .zIndex(1f),
         )
 
         if (state.globalSearchState.isEnabled) {
@@ -255,16 +273,6 @@ private fun HomeScaffold(
                         state.eventSink(HomeEvent.SelectHomeNavigationBarItem(item))
                     }
                 },
-                floatingActionButton = {
-                    when (state.currentHomeNavigationBarItem) {
-                        HomeNavigationBarItem.Chats -> {
-                            HomeFloatingActionButton(onStartChatClick, CommonStrings.action_create_room)
-                        }
-                        HomeNavigationBarItem.Spaces -> {
-                            HomeFloatingActionButton(onCreateSpaceClick, CommonStrings.action_create_space)
-                        }
-                    }
-                },
             )
         },
         floatingActionButtonPosition = FabPosition.Center,
@@ -345,10 +353,8 @@ private fun HomeBottomBar(
     currentHomeNavigationBarItem: HomeNavigationBarItem,
     onItemClick: (HomeNavigationBarItem) -> Unit,
     modifier: Modifier = Modifier,
-    floatingActionButton: (@Composable () -> Unit)?,
 ) {
     HorizontalFloatingToolbar(
-        floatingActionButton = floatingActionButton,
         modifier = modifier
             .zIndex(1f),
     ) {
