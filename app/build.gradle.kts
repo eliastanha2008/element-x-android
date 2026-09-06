@@ -49,7 +49,7 @@ android {
 
         // Keep abiFilter for the universalApk
         ndk {
-            abiFilters += listOf("armeabi-v7a", "x86", "arm64-v8a", "x86_64")
+            abiFilters += listOf("armeabi-v7a", "x86")
         }
 
         // Ref: https://developer.android.com/studio/build/configure-apk-splits.html#configure-abi-split
@@ -68,7 +68,7 @@ android {
 
                 if (!buildingAppBundle) {
                     // Specifies a list of ABIs that Gradle should create APKs for.
-                    include("armeabi-v7a", "x86", "arm64-v8a", "x86_64")
+                    include("armeabi-v7a", "x86")
                     // Generate a universal APK that includes all ABIs, so user who installs from CI tool can use this one by default.
                     isUniversalApk = true
                 }
@@ -210,9 +210,7 @@ androidComponents {
     // 64 bits have greater value than 32 bits
     val abiVersionCodes = mapOf(
         "armeabi-v7a" to 1,
-        "arm64-v8a" to 2,
         "x86" to 3,
-        "x86_64" to 4,
     )
 
     onVariants { variant ->
