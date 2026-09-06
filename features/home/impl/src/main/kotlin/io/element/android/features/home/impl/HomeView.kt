@@ -134,8 +134,8 @@ fun HomeView(
         )
 
         // Telegram-style floating action button, detached from the bottom navigation bar.
-        val fabOnClick = if (state.currentHomeNavigationBarItem == HomeNavigationBarItem.Chats) onStartChatClick else onCreateSpaceClick
-        val fabContentDescription = if (state.currentHomeNavigationBarItem == HomeNavigationBarItem.Chats) {
+        val fabOnClick = if (homeState.currentHomeNavigationBarItem == HomeNavigationBarItem.Chats) onStartChatClick else onCreateSpaceClick
+        val fabContentDescription = if (homeState.currentHomeNavigationBarItem == HomeNavigationBarItem.Chats) {
             CommonStrings.action_create_room
         } else {
             CommonStrings.action_create_space
