@@ -41,13 +41,16 @@ fun HamGapGlobalBottomBar(
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .zIndex(1f),
         ) {
-            NavigationIcon(
-                currentUserAndNeighbors = users.toPersistentList(),
-                showAvatarIndicator = showAvatarIndicator,
-                onAccountSwitch = { },
-                onClick = onAvatarClick,
-            )
-            HorizontalFloatingToolbarSeparator()
+            // Only render the avatar once user data is available: the pager crashes on an empty list.
+            if (users.isNotEmpty()) {
+                NavigationIcon(
+                    currentUserAndNeighbors = users.toPersistentList(),
+                    showAvatarIndicator = showAvatarIndicator,
+                    onAccountSwitch = { },
+                    onClick = onAvatarClick,
+                )
+                HorizontalFloatingToolbarSeparator()
+            }
             HomeNavigationBarItem.entries.forEachIndexed { index, item ->
                 if (index > 0) {
                     HorizontalFloatingToolbarSeparator()
