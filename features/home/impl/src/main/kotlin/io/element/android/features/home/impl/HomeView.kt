@@ -49,6 +49,7 @@ import dev.chrisbanes.haze.rememberHazeState
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.features.home.impl.components.HomeTopBar
+import io.element.android.features.home.impl.components.NavigationIcon
 import io.element.android.features.home.impl.components.RoomListContentView
 import io.element.android.features.home.impl.components.RoomListMenuAction
 import io.element.android.features.home.impl.model.RoomListRoomSummary
@@ -78,7 +79,10 @@ import io.element.android.libraries.designsystem.utils.snackbar.SnackbarHost
 import io.element.android.libraries.designsystem.utils.snackbar.rememberSnackbarHostState
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.user.MatrixUser
 import io.element.android.libraries.ui.strings.CommonStrings
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.launch
 
 @Composable
@@ -217,6 +221,7 @@ private fun HomeScaffold(
         topBar = {
             HomeTopBar(
                 selectedNavigationItem = state.currentHomeNavigationBarItem,
+                showNavigationIcon = false,
                 currentUserAndNeighbors = state.currentUserAndNeighbors,
                 showAvatarIndicator = state.showAvatarIndicator,
                 areSearchResultsDisplayed = if (roomListState.globalSearchState.isEnabled) {
@@ -254,6 +259,10 @@ private fun HomeScaffold(
                 // navigation bar, so the floating toolbar has to apply the bottom inset itself to avoid overlapping it.
                 modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                 currentHomeNavigationBarItem = state.currentHomeNavigationBarItem,
+                currentUserAndNeighbors = state.currentUserAndNeighbors,
+                showAvatarIndicator = state.showAvatarIndicator,
+                onOpenSettings = onOpenSettings,
+                onAccountSwitch = { state.eventSink(HomeEvent.SwitchToAccount(it)) },
                 onItemClick = { item ->
                     // scroll to top if selecting the same item
                     if (item == state.currentHomeNavigationBarItem) {
@@ -351,6 +360,10 @@ private fun HomeFloatingActionButton(
 @Composable
 private fun HomeBottomBar(
     currentHomeNavigationBarItem: HomeNavigationBarItem,
+    currentUserAndNeighbors: ImmutableList<MatrixUser>,
+    showAvatarIndicator: Boolean,
+    onOpenSettings: () -> Unit,
+    onAccountSwitch: (SessionId) -> Unit,
     onItemClick: (HomeNavigationBarItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -358,6 +371,13 @@ private fun HomeBottomBar(
         modifier = modifier
             .zIndex(1f),
     ) {
+        NavigationIcon(
+            currentUserAndNeighbors = currentUserAndNeighbors,
+            showAvatarIndicator = showAvatarIndicator,
+            onAccountSwitch = onAccountSwitch,
+            onClick = onOpenSettings,
+        )
+        HorizontalFloatingToolbarSeparator()
         HomeNavigationBarItem.entries.forEachIndexed { index, item ->
             if (index > 0) {
                 HorizontalFloatingToolbarSeparator()

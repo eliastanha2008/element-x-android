@@ -107,6 +107,7 @@ fun HomeTopBar(
     currentUserAndNeighbors: ImmutableList<MatrixUser>,
     showAvatarIndicator: Boolean,
     areSearchResultsDisplayed: Boolean,
+    showNavigationIcon: Boolean = true,
     onToggleSearch: () -> Unit,
     onMenuActionClick: (RoomListMenuAction) -> Unit,
     onOpenSettings: () -> Unit,
@@ -156,12 +157,14 @@ fun HomeTopBar(
                 }
             },
             navigationIcon = {
-                NavigationIcon(
-                    currentUserAndNeighbors = currentUserAndNeighbors,
-                    showAvatarIndicator = showAvatarIndicator,
-                    onAccountSwitch = onAccountSwitch,
-                    onClick = onOpenSettings,
-                )
+                if (showNavigationIcon) {
+                    NavigationIcon(
+                        currentUserAndNeighbors = currentUserAndNeighbors,
+                        showAvatarIndicator = showAvatarIndicator,
+                        onAccountSwitch = onAccountSwitch,
+                        onClick = onOpenSettings,
+                    )
+                }
             },
             actions = {
                 if (selectedNavigationItem == HomeNavigationBarItem.Chats) {
@@ -292,7 +295,7 @@ private fun SpaceFilterButton(
 }
 
 @Composable
-private fun NavigationIcon(
+internal fun NavigationIcon(
     currentUserAndNeighbors: ImmutableList<MatrixUser>,
     showAvatarIndicator: Boolean,
     onAccountSwitch: (SessionId) -> Unit,
