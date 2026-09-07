@@ -8,6 +8,7 @@
 
 package io.element.android.features.home.impl
 
+import androidx.compose.runtime.Composable
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import dev.zacsweers.metro.AppScope
