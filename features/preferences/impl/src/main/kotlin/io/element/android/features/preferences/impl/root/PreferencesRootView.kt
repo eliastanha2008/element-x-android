@@ -82,6 +82,7 @@ fun PreferencesRootView(
         // Include pref from other modules
         PreferencePage(
             onBackClick = onBackClick,
+            showBackButton = false,
             title = stringResource(id = CommonStrings.common_settings),
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) {
