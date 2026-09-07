@@ -1,20 +1,25 @@
 package io.element.android.features.home.impl.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.CircleShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import io.element.android.features.home.api.HamGapUiBus
 import io.element.android.features.home.impl.HomeNavigationBarItem
 import io.element.android.libraries.designsystem.theme.components.HorizontalFloatingToolbar
+import io.element.android.libraries.designsystem.theme.ElementTheme
 import io.element.android.libraries.designsystem.theme.components.HorizontalFloatingToolbarItem
 import io.element.android.libraries.designsystem.theme.components.HorizontalFloatingToolbarSeparator
 import kotlinx.collections.immutable.toPersistentList
@@ -26,6 +31,7 @@ import kotlinx.collections.immutable.toPersistentList
 @Composable
 fun HamGapGlobalBottomBar(
     visible: Boolean,
+    avatarSelected: Boolean,
     onAvatarClick: () -> Unit,
     onTabClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -43,19 +49,31 @@ fun HamGapGlobalBottomBar(
         ) {
             // Only render the avatar once user data is available: the pager crashes on an empty list.
             if (users.isNotEmpty()) {
-                NavigationIcon(
-                    currentUserAndNeighbors = users.toPersistentList(),
-                    showAvatarIndicator = showAvatarIndicator,
-                    onAccountSwitch = { },
-                    onClick = onAvatarClick,
-                )
+                Box(
+                    modifier = Modifier
+                        .then(
+                            if (avatarSelected) {
+                                Modifier.background(ElementTheme.colors.bgCanvasDefault, CircleShape)
+                            } else {
+                                Modifier
+                            }
+                        )
+                        .padding(4.dp)
+                ) {
+                    NavigationIcon(
+                        currentUserAndNeighbors = users.toPersistentList(),
+                        showAvatarIndicator = showAvatarIndicator,
+                        onAccountSwitch = { },
+                        onClick = onAvatarClick,
+                    )
+                }
                 HorizontalFloatingToolbarSeparator()
             }
             HomeNavigationBarItem.entries.forEachIndexed { index, item ->
                 if (index > 0) {
                     HorizontalFloatingToolbarSeparator()
                 }
-                val isSelected = selectedTabIndex == index
+                val isSelected = !avatarSelected && selectedTabIndex == index
                 HorizontalFloatingToolbarItem(
                     icon = item.icon(isSelected),
                     tooltipLabel = stringResource(item.labelRes),

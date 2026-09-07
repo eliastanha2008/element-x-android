@@ -41,6 +41,7 @@ interface HomeEntryPoint : FeatureEntryPoint {
      */
     fun globalBottomBar(
         visible: Boolean,
+        avatarSelected: Boolean,
         onAvatarClick: () -> Unit,
         onTabClick: (Int) -> Unit,
     ): (@Composable () -> Unit) = {

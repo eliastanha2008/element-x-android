@@ -29,11 +29,13 @@ class DefaultHomeEntryPoint : HomeEntryPoint {
 
     override fun globalBottomBar(
         visible: Boolean,
+        avatarSelected: Boolean,
         onAvatarClick: () -> Unit,
         onTabClick: (Int) -> Unit,
     ): (@Composable () -> Unit) = {
         HamGapGlobalBottomBar(
             visible = visible,
+            avatarSelected = avatarSelected,
             onAvatarClick = onAvatarClick,
             onTabClick = onTabClick,
         )

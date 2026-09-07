@@ -715,11 +715,11 @@ class LoggedInFlowNode(
                         Box(modifier = Modifier.matchParentSize()) {
                             homeEntryPoint.globalBottomBar(
                                 visible = hamGapShowBar,
+                                avatarSelected = hamGapActiveTarget is NavTarget.Settings,
                                 onAvatarClick = {
+                                    // If we are already on Settings, stay where we are.
                                     if (hamGapActiveTarget is NavTarget.Home) {
                                         backstack.push(NavTarget.Settings())
-                                    } else {
-                                        backstack.pop()
                                     }
                                 },
                                 onTabClick = { index ->
