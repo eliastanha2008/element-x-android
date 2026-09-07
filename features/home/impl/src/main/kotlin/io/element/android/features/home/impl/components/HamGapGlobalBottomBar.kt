@@ -19,7 +19,7 @@ import androidx.compose.ui.zIndex
 import io.element.android.features.home.api.HamGapUiBus
 import io.element.android.features.home.impl.HomeNavigationBarItem
 import io.element.android.libraries.designsystem.theme.components.HorizontalFloatingToolbar
-import io.element.android.libraries.designsystem.theme.ElementTheme
+import io.element.android.compound.theme.ElementTheme
 import io.element.android.libraries.designsystem.theme.components.HorizontalFloatingToolbarItem
 import io.element.android.libraries.designsystem.theme.components.HorizontalFloatingToolbarSeparator
 import kotlinx.collections.immutable.toPersistentList
