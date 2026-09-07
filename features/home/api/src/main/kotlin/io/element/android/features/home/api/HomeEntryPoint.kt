@@ -8,6 +8,7 @@
 
 package io.element.android.features.home.api
 
+import androidx.compose.runtime.Composable
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import com.bumble.appyx.core.plugin.Plugin
@@ -32,5 +33,16 @@ interface HomeEntryPoint : FeatureEntryPoint {
         fun navigateToEnterRecoveryKey()
         fun navigateToRoomSettings(roomId: RoomId)
         fun navigateToBugReport()
+    }
+
+    /**
+     * Renders the persistent HamGap bottom bar above the current screen.
+     * Default implementation renders nothing.
+     */
+    fun globalBottomBar(
+        visible: Boolean,
+        onAvatarClick: () -> Unit,
+        onTabClick: (Int) -> Unit,
+    ): (@Composable () -> Unit) = {
     }
 }

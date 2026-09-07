@@ -6,7 +6,7 @@
  * Please see LICENSE files in the repository root for full details.
  */
 plugins {
-    id("io.element.android-library")
+    id("io.element.android-compose-library")
 }
 
 android {
@@ -16,4 +16,5 @@ android {
 dependencies {
     implementation(projects.libraries.architecture)
     implementation(projects.libraries.matrix.api)
+    implementation(libs.coroutines.core)
 }

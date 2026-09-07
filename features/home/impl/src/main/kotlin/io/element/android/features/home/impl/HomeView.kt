@@ -25,11 +25,10 @@ import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -48,8 +47,8 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
+import io.element.android.features.home.api.HamGapUiBus
 import io.element.android.features.home.impl.components.HomeTopBar
-import io.element.android.features.home.impl.components.NavigationIcon
 import io.element.android.features.home.impl.components.RoomListContentView
 import io.element.android.features.home.impl.components.RoomListMenuAction
 import io.element.android.features.home.impl.model.RoomListRoomSummary
@@ -68,9 +67,6 @@ import io.element.android.libraries.androidutils.throttler.FirstThrottler
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.FloatingActionButton
-import io.element.android.libraries.designsystem.theme.components.HorizontalFloatingToolbar
-import io.element.android.libraries.designsystem.theme.components.HorizontalFloatingToolbarItem
-import io.element.android.libraries.designsystem.theme.components.HorizontalFloatingToolbarSeparator
 import io.element.android.libraries.designsystem.theme.components.Icon
 import io.element.android.libraries.designsystem.theme.components.Scaffold
 import io.element.android.libraries.designsystem.utils.lazyColumnContentPadding
@@ -79,10 +75,7 @@ import io.element.android.libraries.designsystem.utils.snackbar.SnackbarHost
 import io.element.android.libraries.designsystem.utils.snackbar.rememberSnackbarHostState
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
-import io.element.android.libraries.matrix.api.core.SessionId
-import io.element.android.libraries.matrix.api.user.MatrixUser
 import io.element.android.libraries.ui.strings.CommonStrings
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.launch
 
 @Composable
@@ -105,6 +98,20 @@ fun HomeView(
     val state: RoomListState = homeState.roomListState
     val coroutineScope = rememberCoroutineScope()
     val firstThrottler = remember { FirstThrottler(300, coroutineScope) }
+
+    // Publish home state to the shared bus so the persistent bottom bar can render it on other screens.
+    LaunchedEffect(homeState.currentUserAndNeighbors) { HamGapUiBus.currentUserAndNeighbors.value = homeState.currentUserAndNeighbors }
+    LaunchedEffect(homeState.showAvatarIndicator) { HamGapUiBus.showAvatarIndicator.value = homeState.showAvatarIndicator }
+    LaunchedEffect(homeState.currentHomeNavigationBarItem) { HamGapUiBus.selectedTabIndex.value = homeState.currentHomeNavigationBarItem.ordinal }
+    // Apply tab switch requests coming from the persistent bottom bar (e.g. while on the Settings flow).
+    LaunchedEffect(Unit) {
+        HamGapUiBus.tabRequest.collect { (index, seq) ->
+            if (seq > 0) {
+                homeState.eventSink(HomeEvent.SelectHomeNavigationBarItem(HomeNavigationBarItem.from(index)))
+            }
+        }
+    }
+
     Box(modifier) {
         if (state.contextMenu is RoomListState.ContextMenu.Shown) {
             RoomListContextMenu(
@@ -252,39 +259,6 @@ private fun HomeScaffold(
                 )
             )
         },
-        floatingActionButton = {
-            val coroutineScope = rememberCoroutineScope()
-            HomeBottomBar(
-                // The Scaffold uses top-only insets so the scrollable content can go edge-to-edge behind the
-                // navigation bar, so the floating toolbar has to apply the bottom inset itself to avoid overlapping it.
-                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
-                currentHomeNavigationBarItem = state.currentHomeNavigationBarItem,
-                currentUserAndNeighbors = state.currentUserAndNeighbors,
-                showAvatarIndicator = state.showAvatarIndicator,
-                onOpenSettings = onOpenSettings,
-                onAccountSwitch = { state.eventSink(HomeEvent.SwitchToAccount(it)) },
-                onItemClick = { item ->
-                    // scroll to top if selecting the same item
-                    if (item == state.currentHomeNavigationBarItem) {
-                        val lazyListStateTarget = when (item) {
-                            HomeNavigationBarItem.Chats -> roomsLazyListState
-                            HomeNavigationBarItem.Spaces -> spacesLazyListState
-                        }
-                        coroutineScope.launch {
-                            if (lazyListStateTarget.firstVisibleItemIndex > 10) {
-                                lazyListStateTarget.scrollToItem(10)
-                            }
-                            // Also reset the scrollBehavior height offset as it's not triggered by programmatic scrolls
-                            scrollBehavior.state.heightOffset = 0f
-                            lazyListStateTarget.animateScrollToItem(0)
-                        }
-                    } else {
-                        state.eventSink(HomeEvent.SelectHomeNavigationBarItem(item))
-                    }
-                },
-            )
-        },
-        floatingActionButtonPosition = FabPosition.Center,
         contentWindowInsets = scaffoldScrollableContentInsets,
         content = { padding ->
             val outerPadding = PaddingValues(
@@ -353,43 +327,6 @@ private fun HomeFloatingActionButton(
             imageVector = CompoundIcons.Plus(),
             contentDescription = stringResource(id = contentDescription),
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun HomeBottomBar(
-    currentHomeNavigationBarItem: HomeNavigationBarItem,
-    currentUserAndNeighbors: ImmutableList<MatrixUser>,
-    showAvatarIndicator: Boolean,
-    onOpenSettings: () -> Unit,
-    onAccountSwitch: (SessionId) -> Unit,
-    onItemClick: (HomeNavigationBarItem) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    HorizontalFloatingToolbar(
-        modifier = modifier
-            .zIndex(1f),
-    ) {
-        NavigationIcon(
-            currentUserAndNeighbors = currentUserAndNeighbors,
-            showAvatarIndicator = showAvatarIndicator,
-            onAccountSwitch = onAccountSwitch,
-            onClick = onOpenSettings,
-        )
-        HorizontalFloatingToolbarSeparator()
-        HomeNavigationBarItem.entries.forEachIndexed { index, item ->
-            if (index > 0) {
-                HorizontalFloatingToolbarSeparator()
-            }
-            val isSelected = currentHomeNavigationBarItem == item
-            HorizontalFloatingToolbarItem(
-                icon = item.icon(isSelected),
-                tooltipLabel = stringResource(item.labelRes),
-                isSelected = isSelected,
-                onClick = { onItemClick(item) },
-            )
-        }
     }
 }
 

@@ -13,6 +13,7 @@ import com.bumble.appyx.core.node.Node
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import io.element.android.features.home.api.HomeEntryPoint
+import io.element.android.features.home.impl.components.HamGapGlobalBottomBar
 import io.element.android.libraries.architecture.createNode
 
 @ContributesBinding(AppScope::class)
@@ -23,5 +24,17 @@ class DefaultHomeEntryPoint : HomeEntryPoint {
         callback: HomeEntryPoint.Callback,
     ): Node {
         return parentNode.createNode<HomeFlowNode>(buildContext, listOf(callback))
+    }
+
+    override fun globalBottomBar(
+        visible: Boolean,
+        onAvatarClick: () -> Unit,
+        onTabClick: (Int) -> Unit,
+    ): (@Composable () -> Unit) = {
+        HamGapGlobalBottomBar(
+            visible = visible,
+            onAvatarClick = onAvatarClick,
+            onTabClick = onTabClick,
+        )
     }
 }

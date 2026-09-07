@@ -56,6 +56,7 @@ import io.element.android.features.ftue.api.FtueEntryPoint
 import io.element.android.features.ftue.api.state.FtueService
 import io.element.android.features.ftue.api.state.FtueState
 import io.element.android.features.home.api.HomeEntryPoint
+import io.element.android.features.home.api.HamGapUiBus
 import io.element.android.features.linknewdevice.api.LinkNewDeviceEntryPoint
 import io.element.android.features.location.api.LocalMapTilerConfig
 import io.element.android.features.location.api.live.ActiveLiveLocationShareManager
@@ -706,6 +707,28 @@ class LoggedInFlowNode(
                         BackstackView(transitionHandler = rememberLoggedInFlowTransitionHandler(backstack))
                         if (ftueState is FtueState.Complete) {
                             PermanentChild(permanentNavModel = permanentNavModel, navTarget = NavTarget.LoggedInPermanent)
+                        }
+                        // Persistent HamGap bottom bar: stays visible above the Home and Settings flows.
+                        val hamGapElements by backstack.elements.collectAsState()
+                        val hamGapActiveTarget = hamGapElements.lastOrNull { it.targetState == ACTIVE }?.key?.navTarget
+                        val hamGapShowBar = hamGapActiveTarget is NavTarget.Home || hamGapActiveTarget is NavTarget.Settings
+                        Box(modifier = Modifier.matchParentSize()) {
+                            homeEntryPoint.globalBottomBar(
+                                visible = hamGapShowBar,
+                                onAvatarClick = {
+                                    if (hamGapActiveTarget is NavTarget.Home) {
+                                        backstack.push(NavTarget.Settings())
+                                    } else {
+                                        backstack.pop()
+                                    }
+                                },
+                                onTabClick = { index ->
+                                    HamGapUiBus.requestTab(index)
+                                    if (hamGapActiveTarget !is NavTarget.Home) {
+                                        backstack.pop()
+                                    }
+                                },
+                            )()
                         }
                     }
                 }
