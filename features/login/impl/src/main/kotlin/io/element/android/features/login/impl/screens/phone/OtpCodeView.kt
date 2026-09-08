@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -37,6 +38,7 @@ import io.element.android.libraries.designsystem.theme.components.FilledTextFiel
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * HamGap OTP verification screen.
@@ -53,10 +55,27 @@ fun OtpCodeView(
     var error by rememberSaveable { mutableStateOf<String?>(null) }
     var resendCountdown by remember { mutableIntStateOf(60) }
     var resendTrigger by remember { mutableIntStateOf(0) }
+    var isVerifying by rememberSaveable { mutableStateOf(false) }
+    var isResending by rememberSaveable { mutableStateOf(false) }
+    var verified by rememberSaveable { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
-    // Resolve error strings here (outside the non-composable onClick lambda).
+    // Resolve error strings here (outside the non-composable onClick lambda),
+    // then map server error keys to user-facing messages.
     val wrongLengthError = stringResource(R.string.hamgap_otp_wrong_length)
-    val serverNoticeError = stringResource(R.string.hamgap_phone_server_notice)
+    val wrongCodeError = stringResource(R.string.hamgap_otp_wrong_code)
+    val expiredError = stringResource(R.string.hamgap_otp_expired)
+    val tooManyError = stringResource(R.string.hamgap_otp_too_many)
+    val noCodeError = stringResource(R.string.hamgap_otp_request_new)
+    val networkError = stringResource(R.string.hamgap_network_error)
+
+    fun mapServerError(message: String?): String = when (message) {
+        "wrong code" -> wrongCodeError
+        "code expired, request a new one" -> expiredError
+        "too many attempts" -> tooManyError
+        "no code requested for this number" -> noCodeError
+        else -> networkError
+    }
 
     LaunchedEffect(resendTrigger) {
         resendCountdown = 60
@@ -92,52 +111,87 @@ fun OtpCodeView(
         },
         footer = {
             Column {
-                error?.let { message ->
+                if (verified) {
                     Text(
-                        text = message,
-                        style = ElementTheme.typography.fontBodySmRegular,
-                        color = ElementTheme.colors.textCriticalPrimary,
+                        text = stringResource(R.string.hamgap_otp_success),
+                        style = ElementTheme.typography.fontBodyLgMedium,
+                        color = ElementTheme.colors.textSuccessPrimary,
                     )
-                    Spacer(Modifier.height(16.dp))
-                }
-                Button(
-                    text = stringResource(R.string.hamgap_otp_verify),
-                    onClick = {
-                        when {
-                            code.length != 6 -> error = wrongLengthError
-                            !HamGapPhoneAuth.isServerConfigured -> error = serverNoticeError
-                            else -> error = null
-                            // TODO: when the HamGap server is ready, verify the code
-                            // and continue to account creation / login.
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(Modifier.height(8.dp))
-                if (resendCountdown > 0) {
+                    Spacer(Modifier.height(8.dp))
                     Text(
-                        text = stringResource(R.string.hamgap_otp_resend_in, resendCountdown),
+                        text = stringResource(R.string.hamgap_otp_success_next),
                         style = ElementTheme.typography.fontBodySmRegular,
                         color = ElementTheme.colors.textSecondary,
                     )
                 } else {
-                    TextButton(
-                        text = stringResource(R.string.hamgap_otp_resend),
-                        onClick = { resendTrigger += 1 },
+                    error?.let { message ->
+                        Text(
+                            text = message,
+                            style = ElementTheme.typography.fontBodySmRegular,
+                            color = ElementTheme.colors.textCriticalPrimary,
+                        )
+                        Spacer(Modifier.height(16.dp))
+                    }
+                    Button(
+                        text = stringResource(R.string.hamgap_otp_verify),
+                        onClick = {
+                            if (code.length != 6) {
+                                error = wrongLengthError
+                            } else {
+                                scope.launch {
+                                    isVerifying = true
+                                    error = null
+                                    when (val result = HamGapPhoneAuth.verifyCode(phoneNumber, code)) {
+                                        is HamGapPhoneAuth.AuthResult.Success -> verified = true
+                                        is HamGapPhoneAuth.AuthResult.Error -> error = mapServerError(result.message)
+                                    }
+                                    isVerifying = false
+                                }
+                            }
+                        },
+                        showProgress = isVerifying,
+                        enabled = !isVerifying,
                         modifier = Modifier.fillMaxWidth(),
                     )
+                    Spacer(Modifier.height(8.dp))
+                    if (resendCountdown > 0) {
+                        Text(
+                            text = stringResource(R.string.hamgap_otp_resend_in, resendCountdown),
+                            style = ElementTheme.typography.fontBodySmRegular,
+                            color = ElementTheme.colors.textSecondary,
+                        )
+                    } else {
+                        TextButton(
+                            text = stringResource(R.string.hamgap_otp_resend),
+                            showProgress = isResending,
+                            enabled = !isResending,
+                            onClick = {
+                                scope.launch {
+                                    isResending = true
+                                    error = null
+                                    when (HamGapPhoneAuth.requestCode(phoneNumber)) {
+                                        is HamGapPhoneAuth.AuthResult.Success -> resendTrigger += 1
+                                        is HamGapPhoneAuth.AuthResult.Error -> error = mapServerError(null)
+                                    }
+                                    isResending = false
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
             }
         },
     ) {
         FilledTextField(
             value = code,
-            onValueChange = { value -> code = value.filter { it.isDigit() }.take(6) },
+            onValueChange = { value -> if (!verified) code = value.filter { it.isDigit() }.take(6) },
             modifier = Modifier.fillMaxWidth(),
             label = { Text(stringResource(R.string.hamgap_otp_hint)) },
             textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             singleLine = true,
+            enabled = !verified,
         )
     }
 }

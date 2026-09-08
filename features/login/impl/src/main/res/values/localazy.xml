@@ -129,4 +129,11 @@ Try signing in manually, or scan the QR code with another device."</string>
   <string name="hamgap_otp_resend">"Resend code"</string>
   <string name="hamgap_otp_resend_in">"Resend code in %d s"</string>
   <string name="hamgap_otp_wrong_length">"The code must be 6 digits."</string>
+  <string name="hamgap_network_error">"Could not connect to the HamGap server. Make sure it is running."</string>
+  <string name="hamgap_otp_wrong_code">"The code you entered is incorrect."</string>
+  <string name="hamgap_otp_expired">"The code has expired. Please request a new one."</string>
+  <string name="hamgap_otp_too_many">"Too many attempts. Please request a new code."</string>
+  <string name="hamgap_otp_request_new">"No code was requested for this number. Go back and request one."</string>
+  <string name="hamgap_otp_success">"Your phone number has been verified ✓"</string>
+  <string name="hamgap_otp_success_next">"Next step — creating your account on the main server. Coming soon."</string>
 </resources>

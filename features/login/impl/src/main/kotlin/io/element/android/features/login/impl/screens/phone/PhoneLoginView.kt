@@ -21,6 +21,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -38,6 +39,7 @@ import io.element.android.libraries.designsystem.components.button.BackButton
 import io.element.android.libraries.designsystem.theme.components.Button
 import io.element.android.libraries.designsystem.theme.components.FilledTextField
 import io.element.android.libraries.designsystem.theme.components.Text
+import kotlinx.coroutines.launch
 
 /**
  * HamGap phone-number login screen.
@@ -53,6 +55,9 @@ fun PhoneLoginView(
     var countryCode by rememberSaveable { mutableStateOf("+93") }
     var phoneNumber by rememberSaveable { mutableStateOf("") }
     var showError by rememberSaveable { mutableStateOf(false) }
+    var serverError by rememberSaveable { mutableStateOf(false) }
+    var isSending by rememberSaveable { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     val digits = phoneNumber.filter { it.isDigit() }
     val isValid = digits.length in 7..13 && countryCode.filter { it.isDigit() }.length in 1..3
@@ -84,24 +89,33 @@ fun PhoneLoginView(
         },
         footer = {
             Column {
-                if (!HamGapPhoneAuth.isServerConfigured) {
+                if (serverError) {
                     Text(
-                        text = stringResource(R.string.hamgap_phone_server_notice),
+                        text = stringResource(R.string.hamgap_network_error),
                         style = ElementTheme.typography.fontBodySmRegular,
-                        color = ElementTheme.colors.textSecondary,
+                        color = ElementTheme.colors.textCriticalPrimary,
                     )
                     Spacer(Modifier.height(16.dp))
                 }
                 Button(
                     text = stringResource(R.string.hamgap_phone_send_code),
                     onClick = {
-                        if (isValid) {
-                            showError = false
-                            onSendCode(fullNumber)
-                        } else {
+                        if (!isValid) {
                             showError = true
+                        } else {
+                            scope.launch {
+                                isSending = true
+                                serverError = false
+                                when (HamGapPhoneAuth.requestCode(fullNumber)) {
+                                    is HamGapPhoneAuth.AuthResult.Success -> onSendCode(fullNumber)
+                                    is HamGapPhoneAuth.AuthResult.Error -> serverError = true
+                                }
+                                isSending = false
+                            }
                         }
                     },
+                    showProgress = isSending,
+                    enabled = !isSending,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

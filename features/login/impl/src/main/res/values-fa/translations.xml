@@ -128,5 +128,12 @@
   <string name="hamgap_otp_resend">"ارسال مجدد کد"</string>
   <string name="hamgap_otp_resend_in">"ارسال مجدد کد تا %d ثانیه"</string>
   <string name="hamgap_otp_wrong_length">"کد باید ۶ رقم باشد."</string>
+  <string name="hamgap_network_error">"اتصال به سرور HamGap برقرار نشد. مطمئن شو سرور روشن است."</string>
+  <string name="hamgap_otp_wrong_code">"کدی که وارد کردی نادرست است."</string>
+  <string name="hamgap_otp_expired">"کد منقضی شده. لطفاً کد جدید درخواست کن."</string>
+  <string name="hamgap_otp_too_many">"تلاش‌های زیادی انجام شد. لطفاً کد جدید درخواست کن."</string>
+  <string name="hamgap_otp_request_new">"برای این شماره کدی درخواست نشده. برگرد و کد بگیر."</string>
+  <string name="hamgap_otp_success">"شماره موبایل شما تایید شد ✓"</string>
+  <string name="hamgap_otp_success_next">"قدم بعد — ساخت حساب شما روی سرور اصلی. به‌زودی."</string>
 </resources>
 
