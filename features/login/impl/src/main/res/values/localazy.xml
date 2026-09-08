@@ -114,4 +114,19 @@ Try signing in manually, or scan the QR code with another device."</string>
   <string name="screen_server_confirmation_title_login">"You’re about to sign in to %1$s"</string>
   <string name="screen_server_confirmation_title_picker_mode">"Choose account provider"</string>
   <string name="screen_server_confirmation_title_register">"You’re about to create an account on %1$s"</string>
+  <string name="hamgap_sign_in_with_phone">"Sign in with phone number"</string>
+  <string name="hamgap_phone_login_title">"Phone number login"</string>
+  <string name="hamgap_phone_login_subtitle">"Enter your phone number and we will send you a verification code."</string>
+  <string name="hamgap_phone_country_code_hint">"Code"</string>
+  <string name="hamgap_phone_number_hint">"Phone number"</string>
+  <string name="hamgap_phone_invalid_number">"Please enter a valid phone number."</string>
+  <string name="hamgap_phone_send_code">"Send verification code"</string>
+  <string name="hamgap_phone_server_notice">"The HamGap phone login server is not set up yet. Everything else is ready — once the server is connected, verification codes will be sent."</string>
+  <string name="hamgap_otp_title">"Verification code"</string>
+  <string name="hamgap_otp_subtitle">"Enter the 6-digit code sent to %s"</string>
+  <string name="hamgap_otp_hint">"6-digit code"</string>
+  <string name="hamgap_otp_verify">"Verify code"</string>
+  <string name="hamgap_otp_resend">"Resend code"</string>
+  <string name="hamgap_otp_resend_in">"Resend code in %d s"</string>
+  <string name="hamgap_otp_wrong_length">"The code must be 6 digits."</string>
 </resources>

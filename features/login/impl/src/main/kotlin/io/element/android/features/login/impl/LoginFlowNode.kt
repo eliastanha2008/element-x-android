@@ -36,6 +36,8 @@ import io.element.android.features.login.impl.screens.chooseaccountprovider.Choo
 import io.element.android.features.login.impl.screens.classic.ClassicFlowNode
 import io.element.android.features.login.impl.screens.confirmaccountprovider.ConfirmAccountProviderNode
 import io.element.android.features.login.impl.screens.loginpassword.LoginPasswordNode
+import io.element.android.features.login.impl.screens.phone.OtpCodeNode
+import io.element.android.features.login.impl.screens.phone.PhoneLoginNode
 import io.element.android.features.login.impl.screens.onboarding.OnBoardingNode
 import io.element.android.features.preferences.api.PreferencesEntryPoint
 import io.element.android.libraries.androidutils.browser.openUrlInChromeCustomTab
@@ -130,6 +132,14 @@ class LoginFlowNode(
         data class LoginPassword(
             val initialLogin: String = "",
         ) : NavTarget
+
+        @Parcelize
+        data object PhoneLogin : NavTarget
+
+        @Parcelize
+        data class OtpCode(
+            val phoneNumber: String,
+        ) : NavTarget
     }
 
     override fun resolve(navTarget: NavTarget, buildContext: BuildContext): Node {
@@ -174,6 +184,10 @@ class LoginFlowNode(
 
                     override fun navigateToQrCode() {
                         backstack.push(NavTarget.QrCode)
+                    }
+
+                    override fun navigateToPhoneLogin() {
+                        backstack.push(NavTarget.PhoneLogin)
                     }
 
                     override fun navigateToBugReport() {
@@ -260,6 +274,20 @@ class LoginFlowNode(
                     initialLogin = navTarget.initialLogin,
                 )
                 createNode<LoginPasswordNode>(buildContext, plugins = listOf(inputs))
+            }
+            NavTarget.PhoneLogin -> {
+                val callback = object : PhoneLoginNode.Callback {
+                    override fun navigateToOtpCode(phoneNumber: String) {
+                        backstack.push(NavTarget.OtpCode(phoneNumber = phoneNumber))
+                    }
+                }
+                createNode<PhoneLoginNode>(buildContext, plugins = listOf(callback))
+            }
+            is NavTarget.OtpCode -> {
+                val inputs = OtpCodeNode.Inputs(
+                    phoneNumber = navTarget.phoneNumber,
+                )
+                createNode<OtpCodeNode>(buildContext, plugins = listOf(inputs))
             }
         }
     }

@@ -113,5 +113,20 @@
   <string name="screen_change_server_textfield_footer_register">"آدرس سروری را که می‌خواهید به آن متصل شوید وارد کنید(می‌توانید از سرور داخلی یا جهانی استفاده کنید.)"</string>
   <string name="screen_change_server_navigation_title_login">"ورود"</string>
   <string name="screen_change_server_navigation_title_register">"ایجاد حساب"</string>
+  <string name="hamgap_sign_in_with_phone">"ورود با شماره موبایل"</string>
+  <string name="hamgap_phone_login_title">"ورود با شماره موبایل"</string>
+  <string name="hamgap_phone_login_subtitle">"شماره موبایلت را وارد کن تا کد تایید برایت ارسال شود."</string>
+  <string name="hamgap_phone_country_code_hint">"کد کشور"</string>
+  <string name="hamgap_phone_number_hint">"شماره موبایل"</string>
+  <string name="hamgap_phone_invalid_number">"لطفاً یک شماره موبایل معتبر وارد کن."</string>
+  <string name="hamgap_phone_send_code">"دریافت کد تایید"</string>
+  <string name="hamgap_phone_server_notice">"سرور ورود با شماره موبایل HamGap هنوز تنظیم نشده. همه چیز آماده است و بعد از وصل شدن سرور، کد تایید ارسال می‌شود."</string>
+  <string name="hamgap_otp_title">"کد تایید"</string>
+  <string name="hamgap_otp_subtitle">"کد ۶ رقمی ارسال‌شده به %s را وارد کن"</string>
+  <string name="hamgap_otp_hint">"کد ۶ رقمی"</string>
+  <string name="hamgap_otp_verify">"تایید کد"</string>
+  <string name="hamgap_otp_resend">"ارسال مجدد کد"</string>
+  <string name="hamgap_otp_resend_in">"ارسال مجدد کد تا %d ثانیه"</string>
+  <string name="hamgap_otp_wrong_length">"کد باید ۶ رقم باشد."</string>
 </resources>
 

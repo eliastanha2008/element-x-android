@@ -66,6 +66,7 @@ fun OnBoardingView(
     onBackClick: () -> Unit,
     onDeveloperSettingsClick: () -> Unit,
     onSignInWithQrCode: () -> Unit,
+    onPhoneLogin: () -> Unit,
     onSignIn: (mustChooseAccountProvider: Boolean) -> Unit,
     onCreateAccount: () -> Unit,
     onOAuthDetails: (OAuthDetails) -> Unit,
@@ -98,6 +99,7 @@ fun OnBoardingView(
         OnBoardingButtons(
             state = state,
             onSignInWithQrCode = onSignInWithQrCode,
+            onPhoneLogin = onPhoneLogin,
             onSignIn = onSignIn,
             onCreateAccount = onCreateAccount,
             onReportProblem = onReportProblem,
@@ -266,6 +268,7 @@ private fun OnBoardingLogo(
 private fun OnBoardingButtons(
     state: OnBoardingState,
     onSignInWithQrCode: () -> Unit,
+    onPhoneLogin: () -> Unit,
     onSignIn: (mustChooseAccountProvider: Boolean) -> Unit,
     onCreateAccount: () -> Unit,
     onReportProblem: () -> Unit,
@@ -277,6 +280,12 @@ private fun OnBoardingButtons(
     }
 
     ButtonColumnMolecule {
+        // HamGap: sign in with phone number (WhatsApp-style OTP login).
+        Button(
+            text = stringResource(id = R.string.hamgap_sign_in_with_phone),
+            onClick = onPhoneLogin,
+            modifier = Modifier.fillMaxWidth()
+        )
         val signInButtonStringRes = if (state.canLoginWithQrCode || state.canCreateAccount) {
             R.string.screen_onboarding_sign_in_manually
         } else {
@@ -358,6 +367,7 @@ internal fun OnBoardingViewPreview(
         onBackClick = {},
         onDeveloperSettingsClick = {},
         onSignInWithQrCode = {},
+        onPhoneLogin = {},
         onSignIn = {},
         onCreateAccount = {},
         onReportProblem = {},
