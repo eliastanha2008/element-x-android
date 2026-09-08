@@ -52,6 +52,10 @@ fun OtpCodeView(
     var resendCountdown by remember { mutableIntStateOf(60) }
     var resendTrigger by remember { mutableIntStateOf(0) }
 
+    // Resolve error strings here (outside the non-composable onClick lambda).
+    val wrongLengthError = stringResource(R.string.hamgap_otp_wrong_length)
+    val serverNoticeError = stringResource(R.string.hamgap_phone_server_notice)
+
     LaunchedEffect(resendTrigger) {
         resendCountdown = 60
         while (resendCountdown > 0) {
@@ -98,8 +102,8 @@ fun OtpCodeView(
                     text = stringResource(R.string.hamgap_otp_verify),
                     onClick = {
                         when {
-                            code.length != 6 -> error = stringResource(R.string.hamgap_otp_wrong_length)
-                            !HamGapPhoneAuth.isServerConfigured -> error = stringResource(R.string.hamgap_phone_server_notice)
+                            code.length != 6 -> error = wrongLengthError
+                            !HamGapPhoneAuth.isServerConfigured -> error = serverNoticeError
                             else -> error = null
                             // TODO: when the HamGap server is ready, verify the code
                             // and continue to account creation / login.
