@@ -273,63 +273,17 @@ private fun OnBoardingButtons(
     onCreateAccount: () -> Unit,
     onReportProblem: () -> Unit,
 ) {
-    val isLoading by remember(state.loginModeState.loginMode) {
-        derivedStateOf {
-            state.loginModeState.loginMode is AsyncData.Loading
-        }
+    ButtonColumnMolecule {
+        // HamGap: the only entry point is phone-number (OTP) login.
+        Button(
+            text = stringResource(id = CommonStrings.action_continue),
+            onClick = onPhoneLogin,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(TestTags.onBoardingSignIn)
+        )
     }
 
-    ButtonColumnMolecule {
-        // HamGap: sign in with phone number (WhatsApp-style OTP login).
-        Button(
-            text = stringResource(id = R.string.hamgap_sign_in_with_phone),
-            onClick = onPhoneLogin,
-            modifier = Modifier.fillMaxWidth()
-        )
-        val signInButtonStringRes = if (state.canLoginWithQrCode || state.canCreateAccount) {
-            R.string.screen_onboarding_sign_in_manually
-        } else {
-            CommonStrings.action_continue
-        }
-        if (state.canLoginWithQrCode) {
-            Button(
-                text = stringResource(id = R.string.screen_onboarding_sign_in_with_qr_code),
-                leadingIcon = IconSource.Vector(CompoundIcons.QrCode()),
-                onClick = onSignInWithQrCode,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-        val defaultAccountProvider = state.defaultAccountProvider
-        if (defaultAccountProvider == null) {
-            Button(
-                text = stringResource(id = signInButtonStringRes),
-                onClick = {
-                    onSignIn(state.mustChooseAccountProvider)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(TestTags.onBoardingSignIn)
-            )
-        } else {
-            Button(
-                text = stringResource(id = R.string.screen_onboarding_sign_in_to, defaultAccountProvider),
-                showProgress = isLoading,
-                onClick = {
-                    state.eventSink(OnBoardingEvent.OnSignIn(defaultAccountProvider))
-                },
-                enabled = state.submitEnabled || isLoading,
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-        }
-        if (state.canCreateAccount) {
-            TextButton(
-                text = stringResource(id = R.string.screen_onboarding_sign_up),
-                onClick = onCreateAccount,
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-        }
         if (state.isAddingAccount.not()) {
             if (state.canReportBug) {
                 // Add a report problem text button. Use a Text since we need a special theme here.
@@ -354,7 +308,6 @@ private fun OnBoardingButtons(
                 )
             }
         }
-    }
 }
 
 @PreviewsDayNight

@@ -13,16 +13,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.element.android.compound.theme.ElementTheme
@@ -101,34 +107,39 @@ fun PhoneLoginView(
             }
         },
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            FilledTextField(
-                value = countryCode,
-                onValueChange = { value ->
-                    countryCode = value.filter { it.isDigit() || it == '+' }.let { if (it.isEmpty() || it.first() == '+') it else "+$it" }
-                },
-                modifier = Modifier.fillMaxWidth(0.3f),
-                label = { Text(stringResource(R.string.hamgap_phone_country_code_hint)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                singleLine = true,
-            )
-            FilledTextField(
-                value = phoneNumber,
-                onValueChange = { value -> phoneNumber = value.filter { it.isDigit() } },
+        // HamGap: keep the country code on the left, like WhatsApp/Telegram,
+        // even when the app layout is RTL (Persian).
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.hamgap_phone_number_hint)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                singleLine = true,
-                isError = showError,
-                supportingText = if (showError) {
-                    { Text(stringResource(R.string.hamgap_phone_invalid_number)) }
-                } else {
-                    null
-                },
-            )
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FilledTextField(
+                    value = countryCode,
+                    onValueChange = { value ->
+                        countryCode = value.filter { it.isDigit() || it == '+' }.let { if (it.isEmpty() || it.first() == '+') it else "+$it" }
+                    },
+                    modifier = Modifier.width(110.dp),
+                    label = { Text(stringResource(R.string.hamgap_phone_country_code_hint)) },
+                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    singleLine = true,
+                )
+                FilledTextField(
+                    value = phoneNumber,
+                    onValueChange = { value -> phoneNumber = value.filter { it.isDigit() } },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.hamgap_phone_number_hint)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    singleLine = true,
+                    isError = showError,
+                    supportingText = if (showError) {
+                        { Text(stringResource(R.string.hamgap_phone_invalid_number)) }
+                    } else {
+                        null
+                    },
+                )
+            }
         }
     }
 }
