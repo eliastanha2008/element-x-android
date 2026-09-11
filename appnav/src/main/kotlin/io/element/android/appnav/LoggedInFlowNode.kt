@@ -87,10 +87,15 @@ import io.element.android.libraries.featureflag.api.FeatureFlagService
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.core.toRoomIdOrAlias
+import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
+import io.element.android.libraries.matrix.api.createroom.RoomPreset
 import io.element.android.libraries.matrix.api.permalink.PermalinkData
+import io.element.android.libraries.matrix.api.room.history.RoomHistoryVisibility
+import io.element.android.libraries.matrix.api.roomdirectory.RoomVisibility
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.sync.SyncService
 import io.element.android.libraries.matrix.api.verification.SessionVerificationServiceListener
@@ -118,10 +123,23 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toKotlinDuration
 import im.vector.app.features.analytics.plan.JoinedRoom as JoinedRoomAnalyticsEvent
+import java.util.Optional
 
 // The maximum number of room nodes that should be kept in the backstack at the same time.
 // Having 5 rooms in the backstack seems reasonable and shouldn't grow the saved state size too much.
 private const val MAX_ROOM_NODE_COUNT = 5
+
+/** Alias of the public room behind the Movies tab of the HamGap bottom bar. */
+private const val MOVIES_ROOM_ALIAS = "#hamgap-movies:matrix-server-2q1l.onrender.com"
+
+/** Local part used when creating the Movies room alias. */
+private const val MOVIES_ROOM_ALIAS_LOCAL_PART = "hamgap-movies"
+
+/** Name of the Movies room, shown to every user. */
+private const val MOVIES_ROOM_NAME = "فیلم‌ها"
+
+/** Topic of the Movies room. */
+private const val MOVIES_ROOM_TOPIC = "فیلم‌های عمومی — هر کس می‌تواند فیلم خود را برای همه به اشتراک بگذارد"
 
 @ContributesNode(SessionScope::class)
 @AssistedInject
@@ -678,6 +696,52 @@ class LoggedInFlowNode(
         }
     }
 
+    private var openingMoviesRoom = false
+
+    /**
+     * Opens the public Movies room from the HamGap bottom bar.
+     * The room is shared by every HamGap user: the first user to open the tab
+     * creates it, everyone else joins it through its stable alias.
+     */
+    private fun openMoviesRoom() {
+        if (openingMoviesRoom) return
+        openingMoviesRoom = true
+        lifecycleScope.launch {
+            val roomAlias = RoomAlias(MOVIES_ROOM_ALIAS)
+            val roomId = resolveOrPubliclyCreateMoviesRoom(roomAlias)
+            if (roomId != null) {
+                matrixClient.joinRoom(roomId)
+                backstack.push(NavTarget.Room(roomIdOrAlias = RoomIdOrAlias.Id(roomId)))
+            }
+            openingMoviesRoom = false
+        }
+    }
+
+    private suspend fun resolveOrPubliclyCreateMoviesRoom(roomAlias: RoomAlias): RoomId? {
+        val existing = matrixClient.resolveRoomAlias(roomAlias).getOrNull()?.orElse(null)
+        if (existing != null) {
+            return existing.roomId
+        }
+        // The room does not exist yet: create it publicly with a stable alias so
+        // other users can join it through the same alias.
+        val created = matrixClient.createRoom(
+            CreateRoomParameters(
+                name = MOVIES_ROOM_NAME,
+                topic = MOVIES_ROOM_TOPIC,
+                isEncrypted = false,
+                visibility = RoomVisibility.Public,
+                preset = RoomPreset.PUBLIC_CHAT,
+                historyVisibilityOverride = RoomHistoryVisibility.WorldReadable,
+                roomAliasName = Optional.of(MOVIES_ROOM_ALIAS_LOCAL_PART),
+            )
+        ).getOrNull()
+        if (created != null) {
+            return created
+        }
+        // Another user may have created it concurrently: resolve it again.
+        return matrixClient.resolveRoomAlias(roomAlias).getOrNull()?.orElse(null)?.roomId
+    }
+
     @Composable
     override fun View(modifier: Modifier) {
         val colors by remember {
@@ -723,9 +787,14 @@ class LoggedInFlowNode(
                                     }
                                 },
                                 onTabClick = { index ->
-                                    HamGapUiBus.requestTab(index)
-                                    if (hamGapActiveTarget !is NavTarget.Home) {
-                                        backstack.pop()
+                                    if (index == HamGapUiBus.MOVIES_TAB_INDEX) {
+                                        // The Movies tab opens the public Movies room instead of a home content tab.
+                                        openMoviesRoom()
+                                    } else {
+                                        HamGapUiBus.requestTab(index)
+                                        if (hamGapActiveTarget !is NavTarget.Home) {
+                                            backstack.pop()
+                                        }
                                     }
                                 },
                             )()

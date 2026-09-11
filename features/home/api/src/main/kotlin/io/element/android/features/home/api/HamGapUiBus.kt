@@ -15,6 +15,12 @@ object HamGapUiBus {
     /** Pair of (tabIndex, requestSequence). The Home screen applies each new request. */
     val tabRequest = MutableStateFlow(0 to 0)
 
+    /**
+     * Index of the Movies tab in [io.element.android.features.home.impl.HomeNavigationBarItem].
+     * This tab does not select a home content: it opens the public Movies room.
+     */
+    const val MOVIES_TAB_INDEX = 2
+
     fun requestTab(index: Int) {
         tabRequest.value = index to tabRequest.value.second + 1
     }

@@ -107,7 +107,10 @@ fun HomeView(
     LaunchedEffect(Unit) {
         HamGapUiBus.tabRequest.collect { (index, seq) ->
             if (seq > 0) {
-                homeState.eventSink(HomeEvent.SelectHomeNavigationBarItem(HomeNavigationBarItem.from(index)))
+                // The Movies tab opens the public Movies room instead of selecting a home content.
+                if (HomeNavigationBarItem.from(index) != HomeNavigationBarItem.Movies) {
+                    homeState.eventSink(HomeEvent.SelectHomeNavigationBarItem(HomeNavigationBarItem.from(index)))
+                }
             }
         }
     }
