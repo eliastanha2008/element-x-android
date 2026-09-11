@@ -313,6 +313,8 @@ private fun HomeScaffold(
                         onExploreClick = {},
                     )
                 }
+                // The Movies tab opens the public Movies room instead of selecting a home content.
+                HomeNavigationBarItem.Movies -> Unit
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },

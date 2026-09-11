@@ -141,6 +141,8 @@ fun HomeTopBar(
                         }
                     }
                     HomeNavigationBarItem.Spaces -> null
+                    // The Movies tab opens the public Movies room; this is only a fallback label.
+                    HomeNavigationBarItem.Movies -> stringResource(selectedNavigationItem.labelRes)
                 }
                 displayTitle?.let {
                     val style = when (spaceFiltersState) {
